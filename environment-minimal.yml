@@ -1,0 +1,35 @@
+name: anonymizer
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Python version
+  - python=3.11
+
+  # System dependencies
+  - tesseract
+
+  # Core packages (let conda resolve versions)
+  - fastapi
+  - uvicorn
+  - python-multipart
+  - pydantic>=2.5.0,<3.0.0
+  - pydantic-settings
+  - httpx
+  - pillow
+  - pytesseract
+  - python-dotenv
+  - aiofiles
+  - pytest
+  - pytest-asyncio
+
+  # Pip dependencies
+  - pip
+  - pip:
+      - anthropic
+      - openai
+      - litellm
+      - python-docx
+      - pypdf
+      - PyMuPDF
+      - pdf2image
