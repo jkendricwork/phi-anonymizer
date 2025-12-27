@@ -330,33 +330,40 @@ def parse_llm_response(response: str) -> Tuple[List[PHIReplacement], str]:
     replacement_log = []
     anonymized_text = ""
 
-    # Try to extract BLOCK 1 (PHI Replacement Log) and BLOCK 2 (De-identified Document)
-    # Pattern to match the log section
-    log_pattern = r"(?:BLOCK 1|PHI REPLACEMENT LOG)[\s\S]*?(?=BLOCK 2|DE-IDENTIFIED DOCUMENT|<<<)"
-    doc_pattern = r"(?:BLOCK 2|DE-IDENTIFIED DOCUMENT)[\s:—-]*\n([\s\S]*?)(?:$|\n\n---|\n\nNote:)"
+    # Remove any markdown formatting from the response
+    clean_response = response.replace('**', '').replace('*', '')
 
-    log_match = re.search(log_pattern, response, re.IGNORECASE)
-    doc_match = re.search(doc_pattern, response, re.IGNORECASE)
+    # Try to extract BLOCK 1 (PHI Replacement Log) and BLOCK 2 (De-identified Document)
+    # Very flexible pattern to match various separators and dashes
+    doc_pattern = r"(?:BLOCK\s*2|DE[-\s]*IDENTIFIED\s+DOCUMENT)[\s:—–-]*\n+([\s\S]+?)(?:\n\n---|\n\nNote:|\Z)"
+
+    doc_match = re.search(doc_pattern, clean_response, re.IGNORECASE)
 
     # Extract anonymized document
     if doc_match:
         anonymized_text = doc_match.group(1).strip()
     else:
         # Fallback: try to find content after a clear separator
-        parts = re.split(r"(?:BLOCK 2|DE-IDENTIFIED DOCUMENT)[\s:—-]*\n", response, flags=re.IGNORECASE)
+        parts = re.split(r"(?:BLOCK\s*2|DE[-\s]*IDENTIFIED\s+DOCUMENT)[\s:—–-]*\n+", clean_response, flags=re.IGNORECASE)
         if len(parts) > 1:
             anonymized_text = parts[-1].strip()
         else:
             anonymized_text = response  # Fallback to full response
 
+    # Pattern to match the log section - extract everything between BLOCK 1 and BLOCK 2
+    # Handle various dash types and whitespace
+    log_pattern = r"(?:BLOCK\s*1|PHI\s+REPLACEMENT\s+LOG)[\s:—–-]*\n+([\s\S]*?)(?=BLOCK\s*2|DE[-\s]*IDENTIFIED\s+DOCUMENT)"
+    log_match = re.search(log_pattern, clean_response, re.IGNORECASE)
+
     # Parse replacement log
     if log_match:
-        log_text = log_match.group(0)
+        log_text = log_match.group(1)
 
-        # Pattern to match each replacement entry
-        entry_pattern = r"Category:\s*(.+?)\s*\nOriginal token:\s*(.+?)\s*\nReplacement:\s*(.+?)\s*\nConsistency key:\s*(.+?)(?=\n\nCategory:|\n\nBLOCK|$)"
+        # Pattern to match each replacement entry - very flexible for various formats
+        # Handles both "- Category:" and "Category:" formats, with or without extra whitespace
+        entry_pattern = r"[-•]?\s*Category:\s*(.+?)\s+Original\s+token:\s*(.+?)\s+Replacement:\s*(.+?)\s+Consistency\s+key:\s*(.+?)(?=\s*[-•]?\s*Category:|\Z)"
 
-        for match in re.finditer(entry_pattern, log_text, re.DOTALL):
+        for match in re.finditer(entry_pattern, log_text, re.DOTALL | re.IGNORECASE):
             replacement = PHIReplacement(
                 category=match.group(1).strip(),
                 original_token=match.group(2).strip(),
