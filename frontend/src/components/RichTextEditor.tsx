@@ -13,7 +13,7 @@ export default function RichTextEditor({ onSubmit, disabled }: RichTextEditorPro
 
   const editor = useEditor({
     extensions: [StarterKit],
-    content: '<p>Paste or type your medical document here...</p>',
+    content: '',
     editorProps: {
       attributes: {
         class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-xl focus:outline-none border border-gray-300 rounded-md',

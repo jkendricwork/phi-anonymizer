@@ -56,7 +56,7 @@ function App() {
           <ResultsDisplay result={result} onReset={handleReset} />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Input</h2>
             <Tab.Group>
@@ -110,8 +110,9 @@ function App() {
           {result && (
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Anonymized Output</h2>
-              <div className="prose prose-sm max-w-none bg-gray-50 p-4 rounded border border-gray-200 overflow-y-auto" style={{ height: '500px' }}>
-                <pre className="whitespace-pre-wrap font-sans text-sm">
+              <div className="mb-6" style={{ height: '80px' }}></div>
+              <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none bg-gray-50 p-4 rounded border border-gray-200">
+                <pre className="whitespace-pre-wrap font-sans">
                   {result.anonymized_text}
                 </pre>
               </div>
